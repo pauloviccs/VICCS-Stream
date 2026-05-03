@@ -44,7 +44,7 @@ export const bbb26shop: ChannelAdapter = {
             const iframeMatches = [...html.matchAll(iframeRegex)];
 
             const sources: StreamSource[] = [];
-            for (let i = 0; i < iframeMatches.length && i < 10; i++) {
+            for (let i = 0; i < iframeMatches.length; i++) {
                 let iframeUrl = iframeMatches[i][1];
                 if (!iframeUrl.startsWith("http")) {
                     if (iframeUrl.startsWith("//")) {
@@ -69,7 +69,7 @@ export const bbb26shop: ChannelAdapter = {
         }
 
         const sources: StreamSource[] = [];
-        for (let i = 0; i < matches.length && i < 10; i++) {
+        for (let i = 0; i < matches.length; i++) {
             let playerUrl = matches[i][1];
             const label = matches[i][2].trim();
 

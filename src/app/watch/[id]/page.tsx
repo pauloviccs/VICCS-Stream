@@ -1,24 +1,17 @@
-import { createClient } from "@/utils/supabase/server";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { StreamSelector } from "./StreamSelector";
-import { resolveChannelSlug } from "@/lib/adapters/registry";
+import { resolveChannelSlug, scrapeChannel } from "@/lib/adapters/registry";
+import { getChannelById } from "@/lib/channels";
 
 // Force dynamic rendering to always get fresh streams
 export const dynamic = 'force-dynamic';
 
-import { scrapeChannel } from "@/lib/adapters/registry";
-
 export default async function WatchPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const supabase = await createClient();
 
-    // Buscar dados do canal no Supabase (nome, logo, categoria — NÃO fontes)
-    const { data: channel } = await supabase
-        .from('channels')
-        .select('*')
-        .eq('id', id)
-        .single();
+    // Buscar dados do canal no catálogo local
+    const channel = getChannelById(id);
 
     if (!channel) {
         return <div className="p-12 text-white">Canal não encontrado.</div>;

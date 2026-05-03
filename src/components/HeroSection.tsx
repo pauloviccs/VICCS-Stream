@@ -1,69 +1,105 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Play, Info } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Play } from "lucide-react";
+import { type Channel, getAllChannels } from "@/lib/channels";
 
+/**
+ * HeroSection dinâmico — sorteia um canal aleatório a cada montagem.
+ * 
+ * O sorteio acontece SOMENTE no client (via useEffect) para evitar 
+ * hydration mismatch. No primeiro render (SSR + hidratação), exibe um 
+ * placeholder invisível que "pisca" suavemente para o canal sorteado.
+ */
 export function HeroSection() {
+    const [channel, setChannel] = useState<Channel | null>(null);
+
+    useEffect(() => {
+        const channels = getAllChannels();
+        const random = channels[Math.floor(Math.random() * channels.length)];
+        setChannel(random);
+    }, []);
+
     return (
         <div className="relative h-[80vh] w-full overflow-hidden">
             {/* Background - Simulating a dynamic backdrop */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/50 via-gray-900 to-black" />
 
-            {/* Background Image - BBB 26 Featured Thumbnail */}
-            <div className="absolute inset-0 z-0 opacity-40 bg-[url('/canais/bbb-16.png')] bg-cover bg-center" />
+            {/* Background Image - Dynamic based on channel */}
+            <AnimatePresence mode="wait">
+                {channel && (
+                    <motion.div
+                        key={channel.id + "-bg"}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.4 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.8 }}
+                        className="absolute inset-0 z-0 bg-cover bg-center"
+                        style={{ backgroundImage: `url('${channel.logo_url}')` }}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Content Container with Liquid Glass Effect */}
             <div className="relative z-10 flex h-full flex-col justify-center px-6 md:px-12 lg:px-24">
-                {/* Liquid Glass Container - iOS 26 Style */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6 }}
-                    className="relative max-w-2xl space-y-6 rounded-3xl border border-white/5 bg-black/20 p-8 md:p-10 backdrop-blur-md shadow-xl"
-                    style={{
-                        background: 'linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 100%)',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
-                    }}
-                >
-                    {/* Subtle glass shine effect */}
-                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none" />
-
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.1 }}
-                        className="relative font-display text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl drop-shadow-lg"
-                    >
-                        Big Brother <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-200 drop-shadow-lg">
-                            Brasil 26
-                        </span>
-                    </motion.h1>
-
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2 }}
-                        className="relative text-base text-white/80 md:text-lg leading-relaxed"
-                    >
-                        Acompanhe a casa mais vigiada do Brasil 24 horas por dia. Câmeras exclusivas, festas e tudo o que rola no reality.
-                    </motion.p>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                        className="relative flex gap-4 pt-2"
-                    >
-                        <a
-                            href="/watch/1fc929af-5820-4b1e-9cc7-e954fd5044cd"
-                            className="flex items-center gap-2 rounded-2xl bg-white/90 backdrop-blur-sm px-8 py-4 font-bold text-black transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-lg active:scale-95"
+                <AnimatePresence mode="wait">
+                    {channel && (
+                        <motion.div
+                            key={channel.id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.6 }}
+                            className="relative max-w-2xl space-y-6 rounded-3xl border border-white/5 p-8 md:p-10 backdrop-blur-md shadow-xl"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 100%)',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+                            }}
                         >
-                            <Play className="h-5 w-5 fill-current" />
-                            Assistir Agora
-                        </a>
-                    </motion.div>
-                </motion.div>
+                            {/* Subtle glass shine effect */}
+                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none" />
+
+                            <motion.h1
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.1 }}
+                                className="relative font-display text-4xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl drop-shadow-lg"
+                            >
+                                <span
+                                    className="text-transparent bg-clip-text drop-shadow-lg"
+                                    style={{ backgroundImage: `linear-gradient(to right, #fff, ${channel.image_color})` }}
+                                >
+                                    {channel.name}
+                                </span>
+                            </motion.h1>
+
+                            <motion.p
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.2 }}
+                                className="relative text-base text-white/80 md:text-lg leading-relaxed"
+                            >
+                                {channel.description}
+                            </motion.p>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8, delay: 0.3 }}
+                                className="relative flex gap-4 pt-2"
+                            >
+                                <a
+                                    href={`/watch/${channel.id}`}
+                                    className="flex items-center gap-2 rounded-2xl bg-white/90 backdrop-blur-sm px-8 py-4 font-bold text-black transition-all duration-300 hover:scale-105 hover:bg-white hover:shadow-lg active:scale-95"
+                                >
+                                    <Play className="h-5 w-5 fill-current" />
+                                    Assistir Agora
+                                </a>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Fade to content */}

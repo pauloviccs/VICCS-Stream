@@ -48,7 +48,7 @@ export const multicanaishd: ChannelAdapter = {
 
         const sources: StreamSource[] = [];
 
-        for (let i = 0; i < matches.length && i < 10; i++) {
+        for (let i = 0; i < matches.length; i++) {
             const match = matches[i];
             let playerUrl = match[1];
             const label = match[2].trim();

@@ -1,119 +1,150 @@
 # Project Overview
 
 ## Project Name
-
-Lumina Stream
+**VICCS Channels — Lumina Stream**
 
 ## Description
-
-Plataforma de streaming de vídeo ao vivo e sob demanda, estilo TV por internet (IPTV). Permite que usuários assistam canais de TV e filmes diretamente no navegador via player HLS. Integra-se ao Supabase como backend (autenticação, banco de dados, storage). Usa um sistema modular de adapters para scraping dinâmico de fontes de transmissão.
+Plataforma de streaming ao vivo desenvolvida como parte do ecossistema VICCS. Exibe canais de TV ao vivo via sistema de "adapters" que fazem scraping de fontes externas (RedeCanaisTV, MultiCanaisHD, BBB26Shop, YouTube) para obter URLs de streams HLS. Utiliza catálogo local de canais (sem dependência de banco externo) e apresenta interface moderna estilo "Netflix/Streaming" com glassmorphism, dark mode e player de vídeo customizado com HLS.js.
 
 ## Tech Stack
-
+- **Language:** TypeScript
 - **Framework:** Next.js 16.1.4 (App Router)
-- **Linguagem:** TypeScript 5.x
-- **UI Library:** React 19.2.3
-- **Estilização:** Tailwind CSS 3.4.1 + tailwindcss-animate
-- **Fontes:** Inter (sans) + Outfit (display) — via CSS variables
-- **Design Tokens:** HSL-based (shadcn/ui pattern) com dark mode via classe
-- **Animações:** Framer Motion 12.29
-- **Ícones:** Lucide React
-- **Player de Vídeo:** hls.js 1.6.15
-- **Backend/BaaS:** Supabase (SSR + client)
-- **UI Components extras:** Sonner (toasts), Vaul (drawers)
-- **Utilitários:** clsx, tailwind-merge
+- **Runtime:** React 19.2.3 / React DOM 19.2.3
+- **Styling:** Tailwind CSS 3.4 + tailwindcss-animate
+- **Fontes:** Google Fonts (Inter para corpo, Outfit para títulos)
+- **Player:** HLS.js 1.6.15
+- **Animações:** Framer Motion 12.29.0
+- **Ícones:** Lucide React 0.563.0
+- **UI Utils:** clsx, tailwind-merge, vaul (drawer/sheet), sonner (toasts)
 - **Linting:** ESLint 9 + eslint-config-next
-- **Build:** PostCSS + Autoprefixer
+- **Data:** Catálogo local (sem Supabase — projeto anterior foi desativado)
 
 ## Folder Structure
-
 ```text
-lumina-stream/
-├── .agent/
-│   ├── CHANNEL_PUSHING.md     # Docs: sistema de adapters/plugins
-│   └── overview/
-│       └── PROJECT_STATUS.md  # Este arquivo
-├── img/
-│   ├── canais/                # Logos/thumbs de canais
-│   └── filmes/                # Posters de filmes
-├── public/
-│   ├── canais/                # Assets públicos de canais
-│   └── *.svg                  # Ícones padrão Next.js
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── proxy/         # API route — proxy de streams HLS
-│   │   │   └── scrape-stream/ # API route — registry-based scraping
-│   │   ├── watch/
-│   │   │   └── [id]/
-│   │   │       ├── page.tsx         # Player principal (server)
-│   │   │       └── StreamSelector.tsx # Seletor de fontes (client)
-│   │   ├── layout.tsx         # Root layout (fontes, metadata)
-│   │   ├── page.tsx           # Homepage
-│   │   ├── globals.css        # CSS global + design tokens
-│   │   └── favicon.ico
-│   ├── components/
-│   │   ├── ChannelCard.tsx    # Card de canal
-│   │   ├── ChannelCarousel.tsx # Carrossel de canais
-│   │   ├── HeroSection.tsx    # Hero da homepage
-│   │   └── VideoPlayer.tsx    # Player HLS (referer declarativo)
-│   ├── lib/
-│   │   ├── adapters/          # ← NOVO: Sistema de plugins
-│   │   │   ├── types.ts       # Interfaces base
-│   │   │   ├── registry.ts    # Registro central + execução paralela
-│   │   │   ├── multicanaishd.ts  # Adapter multicanaishd.best
-│   │   │   ├── redecanaistv.ts   # Adapter redecanaistv.in
-│   │   │   └── bbb26shop.ts     # Adapter bbb26.shop (blocked)
-│   │   └── utils.ts           # cn() helper (clsx + tailwind-merge)
-│   ├── types/
-│   │   └── supabase.ts        # Tipos gerados do Supabase
-│   └── utils/
-│       └── supabase/
-│           ├── client.ts      # Supabase client-side
-│           └── server.ts      # Supabase server-side (cookies)
-├── tailwind.config.ts         # Config Tailwind com design tokens
-├── next.config.ts             # Config Next.js (remote images)
-├── tsconfig.json
-├── package.json
-├── .env.local                 # Variáveis de ambiente (Supabase keys)
-└── seed_fix.js                # Script utilitário de seed
+VICCS_Channels/
+├── .agent/                     # Agent configs (skills, workflows, overview)
+│   ├── overview/
+│   │   └── PROJECT_STATUS.md   # This file
+│   ├── skills/
+│   └── workflows/
+└── lumina-stream/              # Main Next.js application
+    ├── .env.local              # Supabase keys (legacy, not used)
+    ├── img/
+    │   ├── canais/             # Channel logo assets
+    │   └── filmes/             # Movie poster assets (legacy)
+    ├── public/
+    │   └── canais/             # Public channel images
+    ├── src/
+    │   ├── app/
+    │   │   ├── api/
+    │   │   │   ├── proxy/route.ts       # CORS proxy for HLS streams
+    │   │   │   └── scrape-stream/route.ts # Stream scraping API endpoint
+    │   │   ├── watch/
+    │   │   │   └── [id]/
+    │   │   │       ├── page.tsx           # Watch page (SSR)
+    │   │   │       ├── StreamSelector.tsx  # Stream source selector UI
+    │   │   │       └── SourceSelector.tsx  # Adapter source selector (legacy)
+    │   │   ├── globals.css     # Design tokens + glassmorphism utils
+    │   │   ├── layout.tsx      # Root layout (Inter + Outfit fonts)
+    │   │   └── page.tsx        # Homepage (channel grid + hero)
+    │   ├── components/
+    │   │   ├── ChannelCard.tsx       # Channel card component
+    │   │   ├── ChannelCarousel.tsx   # Horizontal channel carousel
+    │   │   ├── HeroSection.tsx       # Landing hero section (Dynamic Client Component)
+    │   │   └── VideoPlayer.tsx       # Custom HLS video player
+    │   ├── lib/
+    │   │   ├── adapters/
+    │   │   │   ├── types.ts          # Adapter/source type definitions
+    │   │   │   ├── registry.ts       # Central adapter registry + proxy fallback
+    │   │   │   ├── redecanaistv.ts   # RedeCanaisTV adapter (DooPlay)
+    │   │   │   ├── multicanaishd.ts  # MultiCanaisHD adapter
+    │   │   │   ├── bbb26shop.ts      # BBB26Shop adapter
+    │   │   │   └── youtube.ts        # YouTube live adapter
+    │   │   ├── channels.ts    # ★ Local channel catalog (8 canais)
+    │   │   └── utils.ts              # cn() utility (clsx + twMerge)
+    │   ├── types/
+    │   │   └── supabase.ts    # Supabase Database types (legacy)
+    │   └── utils/
+    │       └── supabase/
+    │           ├── client.ts  # Supabase browser client (legacy)
+    │           └── server.ts  # Supabase SSR server client (legacy)
+    ├── seed_channels.js       # DB seeding script (legacy)
+    ├── seed_channels.sql      # SQL seed data (legacy)
+    ├── seed_fix.js            # DB seed fix script (legacy)
+    ├── lumina-dev.ps1         # PowerShell dev launcher
+    ├── run-dev.bat            # Windows dev shortcut
+    ├── next.config.ts         # Next.js config (remote image patterns)
+    ├── tailwind.config.ts     # Tailwind design system config
+    ├── tsconfig.json          # TypeScript config
+    └── package.json           # Dependencies & scripts
 ```
 
 ## Current Features Implemented
+1. **Homepage (Landing Page)**
+   - Hero section com gradients e animações
+   - **Hero Dinâmico:** Sorteia um canal aleatório a cada visita (client-side render) para evitar repetitividade
+   - Carrossel horizontal de 8 canais populares (dados locais)
+   - Design glassmorphism com dark mode
 
-- **Homepage** com hero section e carrossel de canais (dados do Supabase)
-- **Player de vídeo HLS** com suporte a múltiplas fontes/streams por canal
-- **Página dinâmica `/watch/[id]`** com seletor de fonte e seletor de stream
-- **Sistema de Adapters** modular para scraping dinâmico (v2)
-  - Adapters executados em paralelo via `Promise.allSettled`
-  - Cache in-memory de 5 minutos
-  - Referer declarativo passado ao proxy CORS
-  - Estado "Transmissões Offline" quando todos os adapters falham
-  - Loading state animado ("Puxando Sinal HD...")
-  - Fade-in Framer Motion na troca de fontes
-- **API Proxy** (`/api/proxy`) para contornar CORS em streams HLS
-- **API Scrape** (`/api/scrape-stream`) — delega ao registry de adapters
-- **Integração Supabase** — dados de canal apenas (sem fallback de fontes)
-- **Design system** HSL-based com dark mode, fontes Inter/Outfit, e tokens de cor
-- **Touch targets** mínimos de 44px nos botões de fonte (acessibilidade mobile)
-- **Animações** com Framer Motion nos componentes visuais
-- **Toasts** (Sonner) e **Drawers** (Vaul) disponíveis
+2. **Sistema de Adapters (Channel Pushing v2)**
+   - **Registry centralizado** com mapeamento de canais para adapters
+   - **4 adapters ativos:** RedeCanaisTV, MultiCanaisHD, BBB26Shop, YouTube
+   - **Proxy fallback chain:** Direct → AllOrigins → Codetabs → CORSProxy.io
+   - **Cache de scraping** (5 min TTL)
+   - **Slug aliases** para resolução flexível de nomes de canais
+   - **Execução paralela** de múltiplos adapters via `Promise.allSettled`
 
-## Work-in-Progress
+3. **8 Canais Registrados (Ordem de Exibição)**
+   - Multishow (redecanaistv)
+   - Paramount+ (redecanaistv)
+   - Globo (redecanaistv)
+   - Big Brother Brasil 26 (3 adapters: multicanaishd, redecanaistv, bbb26shop)
+   - HBO (redecanaistv)
+   - ESPN (redecanaistv)
+   - SporTV (redecanaistv)
+   - KBS World TV (youtube)
 
-- Ativação do adapter bbb26shop (Cloudflare challenge bypass)
-- Expansão do catálogo de canais e filmes
-- Possível migração do scraping para Supabase Edge Functions com cron
+4. **Watch Page (/watch/[id])**
+   - Player de vídeo HLS customizado com controles glassmorphism
+   - Play/Pause, Volume slider, Playback speed (0.5x–2x)
+   - Fullscreen + Modo Teatro
+   - Auto-hide de controles (3s inatividade)
+   - Proxy CORS automático para streams externos
+   - Seletor de fontes de stream (StreamSelector)
 
-## Known TODOs / Missing Parts
+5. **API Routes**
+   - `GET /api/scrape-stream?channel=<slug>` — Scraping de streams ao vivo
+   - `GET /api/proxy?url=<url>&referer=<ref>` — Proxy CORS para streams HLS
 
-- Autenticação de usuário não implementada (Supabase Auth configurado mas sem fluxo de login)
-- Sem testes automatizados (unit/e2e)
-- `scrape_result.json`, `temp_html.txt` e `manifest_test.txt` na raiz são artefatos de debug — devem ser removidos
-- Sem PWA/manifest configurado
-- Sem CI/CD pipeline
-- Cache in-memory não persiste entre serverless lambdas (Vercel) — futuro: Edge Function com cron
+6. **Data Layer**
+   - Catálogo local em `src/lib/channels.ts` (sem dependência de banco)
+   - IDs são slugs que batem com o adapter registry
 
----
+## Design System
+- **Color Scheme:** Dark mode (HSL tokens via CSS custom properties)
+- **Glassmorphism:** `bg-white/5 backdrop-blur-xl border-white/10`
+- **Typography:** Inter (body) + Outfit (headings)
+- **Accent:** Indigo (player controls, active states)
+- **Background:** Radial gradients fixos (violet + cyan spots)
 
-*Última atualização: 2026-03-25*
+## Recent Changes (2026-05-02)
+- ✅ Migrado catálogo de canais de Supabase para dados locais
+- ✅ Removida seção "Filmes Recentes" (plataforma apenas de canais)
+- ✅ `HeroSection` refatorado para ser totalmente dinâmico, sorteando canais de forma aleatória
+- ✅ Sorteio de canal movido para client-side (evitando *Hydration Mismatch* do React e Dark Reader)
+- ✅ Corrigido link do hero section (UUID → slug) e links de todos os canais
+- ✅ Catálogo de canais reordenado: Multishow agora é o 1º canal, BBB 26 é o 4º
+- ✅ Todos os 8 canais restaurados e funcionando com descrições exclusivas para o novo HeroSection dinâmico
+
+## Work In Progress / Known TODOs
+- [ ] README.md é o template padrão do `create-next-app` (não customizado)
+- [ ] Sem testes automatizados (unit/e2e)
+- [ ] Sem autenticação de usuário (acesso público)
+- [ ] Sem PWA/Service Worker
+- [ ] Sem SEO personalizado (meta description genérica)
+- [ ] Scraping depende de disponibilidade das fontes externas (fragilidade inerente)
+- [ ] Arquivos legados do Supabase podem ser removidos (types, utils, seeds, .env.local)
+- [ ] `check_scrape.ts`, `verify.mjs`, `temp_html.txt`, `manifest_test.txt` são arquivos de debug não integrados
+
+## Last Synced
+`2026-05-02T21:02:00-03:00`
